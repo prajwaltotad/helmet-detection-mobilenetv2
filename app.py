@@ -1,5 +1,7 @@
 import os
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 import threading
 from pathlib import Path
@@ -126,7 +128,7 @@ def process_frame(frame):
             conf=0.45,
             device="cpu",
             verbose=False
-        )
+        )       
 
     person_found = False
 
