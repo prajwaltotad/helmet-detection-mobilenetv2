@@ -54,6 +54,7 @@ The project uses a two-stage inference pipeline:
                   🟢 WITH HELMET       🔴 WITHOUT HELMET
 
 This approach prevents the system from directly classifying an isolated helmet as a person wearing a helmet.
+```
 
 ---
 
