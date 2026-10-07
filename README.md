@@ -1,4 +1,4 @@
-````markdown
+
 # 🪖 Helmet Detection using MobileNetV2 + YOLO + OpenCV
 
 A real-time helmet detection system built using **MobileNetV2 transfer learning**, a pretrained **YOLO person detector**, **TensorFlow/Keras**, and **OpenCV**.
@@ -52,7 +52,6 @@ The project uses a two-stage inference pipeline:
                          ┌──────────┴──────────┐
                          ▼                     ▼
                   🟢 WITH HELMET       🔴 WITHOUT HELMET
-````
 
 This approach prevents the system from directly classifying an isolated helmet as a person wearing a helmet.
 
