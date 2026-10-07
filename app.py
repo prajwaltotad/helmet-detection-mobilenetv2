@@ -1,7 +1,4 @@
 import os
-
-# Streamlit Cloud does not provide a CUDA GPU for this app.
-# Force PyTorch/Ultralytics to use CPU.
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 import threading
@@ -124,11 +121,11 @@ def process_frame(frame):
     # Detect only the COCO "person" class (class 0)
     with model_lock:
         results = person_model(
-                img,
-                classes=[0],
-                conf=0.45,
-                device="cpu",
-                verbose=False
+            img,
+            classes=[0],
+            conf=0.45,
+            device="cpu",
+            verbose=False
         )
 
     person_found = False
