@@ -1,21 +1,15 @@
 # 🪖 Helmet Detection using MobileNetV2 + YOLO + OpenCV
 
-A real-time helmet detection system built using **MobileNetV2 transfer learning**, a pretrained **YOLO person detector**, **TensorFlow/Keras**, **OpenCV**, and **Streamlit**.
+A computer vision project for detecting whether a person is wearing a helmet using **MobileNetV2 transfer learning**, a pretrained **YOLO person detector**, **TensorFlow/Keras**, and **OpenCV**.
 
-The project is designed to classify whether a detected person is:
+The project supports:
 
-- 🟢 **Wearing a Helmet**
-- 🔴 **Not Wearing a Helmet**
-
-The system uses a two-stage computer vision pipeline:
-
-1. 👤 **YOLO** detects whether a person is present.
-2. 🧠 **MobileNetV2** classifies the upper region of the detected person as `with_helmet` or `without_helmet`.
-
-The project supports both:
-
-- 🖥️ Local real-time webcam inference using OpenCV
-- 🌐 Browser-based webcam inference using Streamlit and WebRTC
+- 🖼️ Single-image helmet classification
+- 🎥 Real-time local webcam detection
+- 👤 Person detection using YOLO
+- 🧠 Helmet classification using MobileNetV2
+- 📊 Model evaluation using accuracy, precision, recall and F1-score
+- ☁️ Model training using Google Colab GPU
 
 ---
 
@@ -24,25 +18,23 @@ The project supports both:
 - 🧠 MobileNetV2 transfer learning
 - 👤 YOLO-based person detection
 - 🪖 Helmet / no-helmet classification
-- 🎥 Real-time local webcam detection
-- 🌐 Browser-based webcam application
+- 🎥 Real-time webcam inference
 - 🖼️ Single-image prediction
 - 📦 Pascal VOC XML annotation preprocessing
 - 🔄 Data augmentation during training
 - 📊 Accuracy, precision, recall and F1-score evaluation
 - 📈 Confusion matrix evaluation
-- ☁️ Training using Google Colab GPU
-- 💾 Trained model included in the repository
-- 🚀 Streamlit deployment support
+- ☁️ Training using Google Colab
+- 💾 Trained models included in the repository
 
 ---
 
 # 🧩 System Architecture
 
-The project uses a two-stage inference pipeline.
+The project uses a two-stage computer vision pipeline.
 
 ```text
-                    📷 Input Frame
+                    📷 Webcam Frame
                          │
                          ▼
                 👤 YOLO Person Detector
@@ -64,13 +56,15 @@ The project uses a two-stage inference pipeline.
                 🟢 WITH HELMET       🔴 WITHOUT HELMET
 ```
 
-This approach prevents an isolated object from being directly classified as helmet usage when no person is detected.
+The YOLO stage is used to determine whether a person is present before the helmet classifier is applied.
+
+This helps reduce false detections from isolated objects such as a helmet appearing without a person.
 
 ---
 
 # 📂 Dataset
 
-The project uses the **Bike Helmets Detection** dataset available on Kaggle.
+The project uses the **Bike Helmets Detection** dataset from Kaggle.
 
 🔗 **Kaggle Dataset:**
 [https://www.kaggle.com/datasets/brendan45774/bike-helmets-detection](https://www.kaggle.com/datasets/brendan45774/bike-helmets-detection)
@@ -80,9 +74,9 @@ The original dataset contains:
 * 🖼️ Images
 * 📝 Pascal VOC XML annotations
 
-The XML annotation files provide:
+The XML files provide:
 
-* Object class
+* Object class labels
 * Bounding-box coordinates
 
 The relevant classes are:
@@ -96,9 +90,11 @@ Without helmet
 
 ## 🔄 Dataset Preprocessing
 
-The raw Kaggle dataset is **not stored in this repository**.
+The raw Kaggle dataset is **not included in this GitHub repository**.
 
-Instead, the training notebook performs the preprocessing workflow:
+Instead, the training notebook downloads and processes the dataset.
+
+The preprocessing workflow is:
 
 ```text
 Kaggle Dataset
@@ -119,9 +115,9 @@ without_helmet/
 Train / Validation / Test Split
 ```
 
-This converts the original annotated dataset into a format suitable for binary image classification with MobileNetV2.
+The resulting cropped images are used to train the MobileNetV2 classifier.
 
-The complete preprocessing and training workflow is documented in:
+The complete training workflow is documented in:
 
 ```text
 notebooks/helmet_training.ipynb
@@ -131,7 +127,7 @@ notebooks/helmet_training.ipynb
 
 # 🧠 MobileNetV2 Model
 
-The helmet classifier uses **MobileNetV2 pretrained on ImageNet** as the feature extractor.
+The helmet classifier uses **MobileNetV2 pretrained on ImageNet**.
 
 ## Model Architecture
 
@@ -156,47 +152,29 @@ Helmet / No Helmet
 
 ## Model Configuration
 
-| Parameter          | Value                 |
-| ------------------ | --------------------- |
-| Base Model         | MobileNetV2           |
-| Pretrained Weights | ImageNet              |
-| Input Size         | 224 × 224             |
-| Output             | Binary Classification |
-| Activation         | Sigmoid               |
-| Loss Function      | Binary Cross-Entropy  |
-| Optimizer          | Adam                  |
-| Learning Rate      | 1e-4                  |
-| Batch Size         | 32                    |
+| Parameter           | Value                |
+| ------------------- | -------------------- |
+| Base Model          | MobileNetV2          |
+| Pretrained Weights  | ImageNet             |
+| Input Size          | 224 × 224            |
+| Classification Type | Binary               |
+| Output Activation   | Sigmoid              |
+| Loss Function       | Binary Cross-Entropy |
+| Optimizer           | Adam                 |
+| Learning Rate       | 1e-4                 |
+| Batch Size          | 32                   |
 
-### Preprocessing
-
-MobileNetV2 preprocessing is included **inside the trained model**.
-
-Therefore, the local prediction and webcam applications do **not** apply `preprocess_input()` a second time.
+The MobileNetV2 preprocessing operation is included **inside the trained model**, ensuring that the same preprocessing is used during inference.
 
 ---
 
-# 👤 Person Detection with YOLO
+# 👤 YOLO Person Detection
 
-To reduce false detections caused by isolated helmets, the application uses a pretrained **YOLO person detector** before running the helmet classifier.
+A pretrained YOLO model is used before the MobileNetV2 classifier.
 
-The pipeline is:
+The detector identifies whether a **person** is present in the frame.
 
-```text
-📷 Webcam Frame
-       ↓
-👤 YOLO Person Detection
-       ↓
-Person Found
-       ↓
-Upper Region of Person
-       ↓
-🧠 MobileNetV2
-       ↓
-Helmet Classification
-```
-
-The person detection model used in this project is:
+The current model is:
 
 ```text
 yolo26n.pt
@@ -208,7 +186,23 @@ It is stored in:
 model/yolo26n.pt
 ```
 
-The YOLO model is used to detect the presence of a person before running helmet classification.
+The inference pipeline is:
+
+```text
+📷 Webcam
+     ↓
+👤 YOLO Person Detection
+     ↓
+Person Bounding Box
+     ↓
+Upper Person Region
+     ↓
+🧠 MobileNetV2
+     ↓
+🪖 Helmet Classification
+```
+
+This is intended to reduce cases where an isolated helmet is detected as someone wearing a helmet.
 
 ---
 
@@ -253,15 +247,13 @@ giving an overall accuracy of approximately:
 
 ---
 
-# 📁 Repository Structure
+# 📁 Project Structure
 
 ```text
 helmet-detection-mobilenetv2/
 │
-├── 📄 app.py
 ├── 📄 README.md
 ├── 📄 requirements.txt
-├── 📄 packages.txt
 ├── 📄 .gitignore
 │
 ├── 📂 data/
@@ -281,19 +273,6 @@ helmet-detection-mobilenetv2/
     ├── train.py
     └── webcam.py
 ```
-
-### 📌 Repository Notes
-
-The following are intentionally **not included** in the repository:
-
-* Raw Kaggle images
-* XML annotation files
-* Generated train/validation/test image folders
-* `.venv`
-* Python cache files
-* IDE-specific configuration files
-
-The `data/` directory is retained using `.gitkeep` so the project structure remains visible.
 
 ---
 
@@ -332,10 +311,10 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-The project uses the following major dependencies:
+The main dependencies are:
 
 ```text
-tensorflow>=2.12
+tensorflow
 opencv-python
 numpy
 matplotlib
@@ -343,15 +322,13 @@ scikit-learn
 Pillow
 tqdm
 ultralytics
-streamlit
-streamlit-webrtc
 ```
 
 ---
 
-# 🖼️ Image Prediction
+# 🖼️ Single Image Prediction
 
-The project includes a script for classifying individual images.
+The project includes a script for classifying a single image.
 
 Run:
 
@@ -381,26 +358,24 @@ Confidence: 75.21%
 
 ---
 
-# 🎥 Local Real-Time Webcam Detection
+# 🎥 Real-Time Webcam Detection
 
-The project includes a local OpenCV webcam application.
-
-Run:
+Start the local webcam application:
 
 ```bash
 python src/webcam.py
 ```
 
-The application:
+The application performs the following steps:
 
 1. 📷 Opens the webcam
-2. 👤 Detects people using YOLO
-3. 🔍 Extracts the upper region of the detected person
+2. 👤 Detects a person using YOLO
+3. 🔍 Extracts the upper region of the person
 4. 🧠 Passes the region to MobileNetV2
 5. 🪖 Classifies helmet usage
-6. 📊 Displays the prediction and confidence
-7. 🟩 Uses green for helmet detection
-8. 🟥 Uses red for no-helmet detection
+6. 📊 Displays the predicted class and confidence
+
+### Keyboard Control
 
 Press:
 
@@ -408,150 +383,28 @@ Press:
 Q
 ```
 
-to exit the webcam application.
-
-### Example Local Pipeline
-
-```text
-Webcam
-  ↓
-YOLO Person Detection
-  ↓
-Upper Person Region
-  ↓
-MobileNetV2
-  ↓
-Helmet / No Helmet
-```
-
----
-
-# 🌐 Web Application
-
-The project also includes a browser-based application using:
-
-* 🌐 Streamlit
-* 🎥 streamlit-webrtc
-* 👤 YOLO
-* 🧠 MobileNetV2
-* 🖼️ OpenCV
-
-The web application allows users to use their **own webcam directly from the browser**.
-
-Unlike the local `webcam.py` application, the web application does not use:
-
-```python
-cv2.VideoCapture(0)
-```
-
-Instead, the browser provides the camera stream through WebRTC.
-
----
-
-## ▶️ Run the Web Application Locally
-
-From the project root:
-
-```bash
-streamlit run app.py
-```
-
-The application will normally open at:
-
-```text
-http://localhost:8501
-```
-
-Allow camera access when prompted by the browser.
-
----
-
-## 🌐 Web Application Pipeline
-
-```text
-🌐 Browser
-     ↓
-📷 User Webcam
-     ↓
-🎥 WebRTC Stream
-     ↓
-👤 YOLO Person Detection
-     ↓
-🔍 Upper Person Region
-     ↓
-🧠 MobileNetV2
-     ↓
-🟢 WITH HELMET
-or
-🔴 WITHOUT HELMET
-```
-
----
-
-## 🚀 Online Deployment
-
-The web application is designed to be deployed using **Streamlit Community Cloud**.
-
-Deployment flow:
-
-```text
-GitHub Repository
-       ↓
-Streamlit Community Cloud
-       ↓
-app.py
-       ↓
-Public Web Application
-       ↓
-Users access through browser
-       ↓
-Browser Camera Permission
-       ↓
-Real-Time Prediction
-```
-
-After deployment, the application will be available through a public `streamlit.app` URL.
-
-### Deployment Requirements
-
-The repository must contain:
-
-```text
-app.py
-requirements.txt
-model/helmet_model.keras
-model/yolo26n.pt
-src/
-```
-
-The deployed application uses the same trained models included in the repository.
-
-### ⚠️ Camera Permission
-
-The user must allow camera access in the browser before the application can process webcam frames.
+to close the application.
 
 ---
 
 # ☁️ Model Training
 
-The model was trained using **Google Colab** with GPU acceleration.
+The model was trained in **Google Colab** using GPU acceleration.
 
-A T4 GPU was used for training.
-
-The complete training workflow is documented in:
+The training notebook is included in:
 
 ```text
 notebooks/helmet_training.ipynb
 ```
 
-The notebook covers:
+The training workflow includes:
 
 ```text
 Kaggle Dataset Download
         ↓
 XML Annotation Processing
         ↓
-Image Cropping
+Bounding-Box Cropping
         ↓
 Class Organisation
         ↓
@@ -561,58 +414,46 @@ MobileNetV2 Transfer Learning
         ↓
 Model Training
         ↓
-Model Evaluation
+Evaluation
         ↓
 Model Export
 ```
 
-The trained classifier is saved as:
+The trained models are:
 
 ```text
 model/helmet_model.keras
-```
-
-The person detection model is:
-
-```text
 model/yolo26n.pt
 ```
 
+The MobileNetV2 model was trained in Colab and then transferred to the local project for inference.
+
 ---
 
-# 🧪 Training Strategy
+# 🧪 Local Testing
 
-The project uses **transfer learning** instead of training a convolutional neural network entirely from scratch.
+The project was tested locally using:
 
-MobileNetV2 is used as the pretrained feature extractor, while a custom classification head is trained for the two project classes:
+* 💻 Windows
+* 🐍 Python virtual environment
+* 🧠 TensorFlow / Keras
+* 🎥 OpenCV
+* 👤 YOLO
+* 🪖 MobileNetV2
 
-```text
-with_helmet
-without_helmet
-```
-
-## Why MobileNetV2?
-
-MobileNetV2 provides a useful balance between:
-
-* ⚡ Inference speed
-* 🧠 Feature extraction capability
-* 💻 Computational efficiency
-* 📦 Lightweight deployment
-
-This makes it suitable for real-time computer vision applications and prototypes.
+The local webcam pipeline was successfully tested using the trained models.
 
 ---
 
 # ⚙️ Configuration
 
-Core project settings are stored in:
+Project settings are stored in:
 
 ```text
 src/config.py
 ```
 
-Current configuration includes:
+Important configuration values include:
 
 ```python
 IMG_SIZE = (224, 224)
@@ -626,7 +467,7 @@ CLASS_NAMES = [
 ]
 ```
 
-The model paths are defined using:
+Model paths are configured as:
 
 ```python
 MODEL_PATH = os.path.join(
@@ -642,48 +483,13 @@ PERSON_MODEL_PATH = os.path.join(
 
 ---
 
-# 🧪 Local Testing
-
-The project was tested locally using:
-
-* 💻 Windows
-* 🐍 Python virtual environment
-* 🧠 TensorFlow/Keras
-* 🎥 OpenCV
-* 👤 YOLO
-* 🪖 MobileNetV2
-* 🌐 Streamlit
-* 📡 WebRTC
-
-The trained MobileNetV2 model was transferred from Google Colab to the local project and successfully used for image and webcam inference.
-
----
-
-# 🔍 Example Predictions
-
-### 🪖 With Helmet
-
-```text
-Prediction: WITH HELMET
-Confidence: 98.56%
-```
-
-### 🚫 Without Helmet
-
-```text
-Prediction: WITHOUT HELMET
-Confidence: 75.21%
-```
-
-The confidence values depend on the input image and lighting conditions.
-
----
-
 # ⚠️ Limitations
 
-This project is primarily a **classification-based helmet detection prototype**.
+This project is a **classification-based helmet detection prototype**.
 
-The MobileNetV2 model itself does not perform object detection. YOLO is used to first detect the presence of a person, after which the upper region of the detected person is passed to the classifier.
+MobileNetV2 performs image classification and does not independently locate helmets.
+
+The current pipeline uses YOLO to detect a person and then classifies the upper region of the detected person.
 
 Some challenging situations may still produce incorrect predictions, including:
 
@@ -695,9 +501,9 @@ Some challenging situations may still produce incorrect predictions, including:
 * 🎥 Motion blur
 * 🪖 Helmets held very close to a person's head
 * 🧍 Partially visible people
-* 👤 Unusual poses or camera perspectives
+* Unusual poses or camera perspectives
 
-The current system should therefore be considered a **computer vision prototype** rather than a production-grade road-safety enforcement system.
+The project should therefore be considered a **prototype / educational computer vision project**, not a production-grade safety enforcement system.
 
 ---
 
@@ -707,18 +513,22 @@ Possible future improvements include:
 
 * 🎯 Dedicated helmet object detection
 * 👥 Multi-person helmet detection
-* 🧠 Larger and more diverse training datasets
-* 🚫 Addition of hard-negative samples such as:
-
-  * Helmet being held in a hand
-  * Helmet placed on a table
-  * Helmet near a person's head but not worn
+* 🧠 Larger and more diverse datasets
+* 🚫 Additional hard-negative training samples
+* 🪖 Better distinction between worn and non-worn helmets
 * 📈 Further model fine-tuning
 * 📱 Edge-device optimization
-* 🌐 Improved web deployment
 * 🎥 Video-file inference
 * 🚦 Integration with traffic monitoring systems
-* 📊 More extensive benchmarking across different environments
+
+Examples of useful hard-negative samples include:
+
+```text
+Helmet being held in a hand
+Helmet placed on a table
+Helmet near a person's head but not worn
+Helmet appearing without a rider
+```
 
 ---
 
@@ -729,28 +539,26 @@ Possible future improvements include:
 ✅ Binary helmet classification
 ✅ YOLO-based person detection
 ✅ Real-time OpenCV webcam inference
-✅ Browser-based webcam inference
-✅ Streamlit web application
-✅ WebRTC camera streaming
+✅ Image prediction
 ✅ Model evaluation using standard classification metrics
 ✅ GPU-based training using Google Colab
-✅ Local model deployment and testing
+✅ Local deployment and testing
 
 ---
 
-# 📜 Project Files
+# 📜 Files and Their Purpose
 
-| File / Folder                     | Purpose                                  |
-| --------------------------------- | ---------------------------------------- |
-| `app.py`                          | Streamlit browser-based application      |
-| `src/config.py`                   | Project paths and training configuration |
-| `src/train.py`                    | MobileNetV2 training pipeline            |
-| `src/predict.py`                  | Single-image prediction                  |
-| `src/webcam.py`                   | Local OpenCV webcam application          |
-| `model/helmet_model.keras`        | Trained MobileNetV2 classifier           |
-| `model/yolo26n.pt`                | YOLO person detection model              |
-| `notebooks/helmet_training.ipynb` | Google Colab training notebook           |
-| `requirements.txt`                | Python dependencies                      |
+| File / Folder                     | Purpose                                    |
+| --------------------------------- | ------------------------------------------ |
+| `src/config.py`                   | Project paths and configuration            |
+| `src/train.py`                    | MobileNetV2 training pipeline              |
+| `src/predict.py`                  | Single-image prediction                    |
+| `src/webcam.py`                   | Real-time webcam inference                 |
+| `model/helmet_model.keras`        | Trained MobileNetV2 classifier             |
+| `model/yolo26n.pt`                | YOLO person detector                       |
+| `notebooks/helmet_training.ipynb` | Training and preprocessing notebook        |
+| `requirements.txt`                | Python dependencies                        |
+| `data/`                           | Reserved for local/generated dataset files |
 
 ---
 
@@ -770,25 +578,12 @@ Project Repository:
 
 # 📜 License & Attribution
 
-This project is created for educational, portfolio, and project demonstration purposes.
+This project was created for educational, portfolio, and project demonstration purposes.
 
-The original Kaggle dataset and pretrained model components retain their respective licenses and attribution requirements.
+The original dataset and pretrained model components retain their respective licenses and attribution requirements.
 
-The dataset used in this project is obtained from Kaggle:
+Dataset:
 
 [https://www.kaggle.com/datasets/brendan45774/bike-helmets-detection](https://www.kaggle.com/datasets/brendan45774/bike-helmets-detection)
 
-The project also uses a pretrained YOLO model through Ultralytics. Users should review the applicable Ultralytics licensing terms before using the project commercially.
-
-Please verify the licenses of all third-party datasets, models, and libraries before commercial deployment.
-
-````
-
-### One last thing before you push this README
-
-When your Streamlit app is **actually deployed successfully**, add this directly under the title:
-
-```markdown
-🌐 **Live Demo:** https://YOUR-APP-NAME.streamlit.app
-````
-
+The project also uses a pretrained YOLO model through Ultralytics. Users should review the applicable licensing terms for third-party models and libraries before using this project commercially.
