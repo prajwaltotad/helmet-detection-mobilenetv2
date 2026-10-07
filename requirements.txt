@@ -6,3 +6,5 @@ scikit-learn
 Pillow
 tqdm
 ultralytics
+streamlit>=1.51
+streamlit-webrtc>=0.78.1
