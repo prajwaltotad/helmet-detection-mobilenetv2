@@ -1,10 +1,16 @@
-tensorflow>=2.12
+tensorflow==2.21.0
 opencv-python
 numpy
 matplotlib
 scikit-learn
 Pillow
 tqdm
-ultralytics
-streamlit>=1.51
-streamlit-webrtc>=0.78.1
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.6.0+cpu
+torchvision==0.21.0+cpu
+
+ultralytics==8.4.174
+
+streamlit==1.65.0
+streamlit-webrtc==0.78.1
