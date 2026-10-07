@@ -261,6 +261,7 @@ helmet-detection-mobilenetv2/
 ├── 📄 app.py
 ├── 📄 README.md
 ├── 📄 requirements.txt
+├── 📄 packages.txt
 ├── 📄 .gitignore
 │
 ├── 📂 data/
